@@ -1,0 +1,155 @@
+============================================
+FILE: backend\app\core\tenant_middleware.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\core\auth.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\core\jwt.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\core\permissions.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\core\dependencies.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\core\config.py
+============================================
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "OneAccounts API"
+    VERSION: str = "1.0.0"
+    SUPABASE_URL: str
+    SUPABASE_ANON_KEY: str
+    SUPABASE_SERVICE_KEY: str
+    SUPABASE_JWT_SECRET: str
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
+   :: Blank line for separation
+============================================
+FILE: backend\app\api\v1\router.py
+============================================
+from fastapi import APIRouter
+from app.api.v1 import accounts
+
+api_router = APIRouter()
+api_router.include_router(accounts.router, prefix="/accounts", tags=["Accounts"])
+   :: Blank line for separation
+============================================
+FILE: backend\app\repositories\base.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\services\tenant_service.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\services\accounting\journal_service.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: backend\app\services\accounting\ledger_service.py
+============================================
+[File is empty]
+   :: Blank line for separation
+============================================
+FILE: frontend\middleware.ts
+============================================
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        // This is the ONLY place where cookies are written.
+        // Middleware runs before every request — safe to write here.
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // Refresh session — keeps the user logged in across tab reloads
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Redirect unauthenticated users away from /dashboard
+  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // Redirect already-logged-in users away from /login
+  if (user && request.nextUrl.pathname === '/login') {
+    const dashUrl = request.nextUrl.clone()
+    dashUrl.pathname = '/dashboard'
+    return NextResponse.redirect(dashUrl)
+  }
+
+  return supabaseResponse
+}
+
+export const config = {
+  matcher: [
+    // Run on all routes except static files and Next.js internals
+    '/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
+
+   :: Blank line for separation
+============================================
+FILE: frontend\app\dashboard\layout.tsx
+============================================
+*** FILE NOT FOUND ***
+   :: Blank line for separation
+============================================
+FILE: frontend\app\dashboard\sidebar-client.tsx
+============================================
+*** FILE NOT FOUND ***
+   :: Blank line for separation
+============================================
+FILE: frontend\app\login\page.tsx
+============================================
+*** FILE NOT FOUND ***
+   :: Blank line for separation
+============================================
+FILE: frontend\app\api\invoices\route.ts
+============================================
+*** FILE NOT FOUND ***
+   :: Blank line for separation
